@@ -70,3 +70,22 @@ desc 'Install required Gems and Cookbook then run all tests'
 task default: ['prepare', 'test' ]
 
 
+require "rubygems"
+require "chef"
+require "yard"
+
+current_dir = File.dirname(__FILE__)
+
+YARD::Config.load_plugin 'chef'
+YARD::Rake::YardocTask.new do |t|
+  t.files = ["#{current_dir}/**/*.rb"]
+  #t.options = ['--debug']
+end
+
+require 'drud'
+
+desc 'Generate the Readme.md file.'
+task :readme do
+  drud = Drud::Readme.new(current_dir)
+  drud.render
+end
