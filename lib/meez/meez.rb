@@ -17,6 +17,7 @@ class Meez
     init_guard(cookbook_name, options)
     init_drone(cookbook_name, options)
     init_docker(cookbook_name, options)
+    init_misc(cookbook_name, options)
   end
 
   def self.write_template(name, path, cookbook_name, options)
@@ -32,10 +33,16 @@ class Meez
     File.open(file, 'a') { |f| f.write("#{content}\n") }
   end
 
-  def self.add_gem(cookbook_path, name, version = nil)
+  def self.add_gem(cookbook_path, name, version = nil, github = nil, branch = nil)
     puts "adding #{name} gem to Gemfile"
     if version
       append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}', '#{version}'")
+    elsif github
+      if branch
+        append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}', github: '#{github}', branch: #{branch}")
+      else
+        append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}', github: '#{github}'")
+      end
     else
       append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}'")
     end
@@ -84,6 +91,7 @@ class Meez
     contents = File.read(File.join(path, 'Gemfile'))
     newgemfile = contents.gsub("\ngem 'berkshelf'\n", "\ngem 'berkshelf', '> 3.1'\n")
     File.open(File.join(path, 'Gemfile'), 'w') { |f| f.write(newgemfile) }
+    add_gem(path, 'thor-scmversion')
   end
 
   def self.init_kitchenci(cookbook_name, options)
@@ -153,9 +161,9 @@ class Meez
     puts '* Initializing Guard'
     path = File.join(options[:path], cookbook_name)
     write_template('Guardfile.erb', path, cookbook_name, options)
-    add_gem(path, 'guard', '>= 2.6')
-    add_gem(path, 'guard-rubocop', '>= 1.1')
-    add_gem(path, 'guard-foodcritic', '>= 1.0.2')
+    add_gem(path, 'guard')
+    add_gem(path, 'guard-rubocop')
+    add_gem(path, 'guard-foodcritic')
   end
 
   def self.init_drone(cookbook_name, options)
@@ -168,6 +176,14 @@ class Meez
     puts '* Initializing Docker'
     path = File.join(options[:path], cookbook_name)
     write_template('Dockerfile.erb', path, cookbook_name, options)
+  end
+
+  def self.init_misc(cookbook_name, options)
+    puts '* Initializing Misc'
+    path = File.join(options[:path], cookbook_name)
+    add_gem(path, 'yard')
+    add_gem(path, 'yard-chef')
+    add_gem(path, 'drud', nil, 'rberger/drud', 'rjb-use')
   end
 
   def self.bundle_install(cookbook_name, options)
