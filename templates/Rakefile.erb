@@ -1,27 +1,17 @@
 # Encoding: utf-8
+require 'bundler/setup'
 
 namespace :prepare do
-  desc 'Install ChefDK'
-  task :chefdk do
-    begin
-      gem 'chef-dk', '0.2.1'
-    rescue Gem::LoadError
-      puts 'ChefDK not found.  Installing it for you...'
-      sh %(wget -O /tmp/meez_chefdk.deb https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chefdk_0.2.1-1_amd64.deb)
-      sh %(sudo dpkg -i /tmp/meez_chefdk.deb)
-    end
-  end
-
   task :bundle do
     if ENV['CI']
-      sh %(chef exec bundle install --path=.bundle --jobs 1 --retry 3 --verbose)
+      sh %(bundle install --path=.bundle --jobs 1 --retry 3 --verbose)
     else
-      sh %(chef exec bundle install --path .bundle)
+      sh %(bundle install)
     end
   end
 
   task :berks do
-    sh %(chef exec berks install)
+    sh %(berks install)
   end
 end
 
@@ -30,11 +20,11 @@ task prepare: ['prepare:bundle', 'prepare:berks']
 
 namespace :style do
   task :rubocop do
-    sh %(chef exec rubocop)
+    sh %(rubocop)
   end
 
   task :foodcritic do
-    sh %(chef exec foodcritic .)
+    sh %(foodcritic .)
   end
 end
 
@@ -43,7 +33,7 @@ task style: ['style:foodcritic', 'style:rubocop']
 
 namespace :integration do
   task :kitchen do
-    sh %{chef exec kitchen test}
+    sh %{kitchen test}
   end
 end
 
@@ -51,7 +41,7 @@ task integration: ['integration:kitchen']
 
 namespace :unit do
   task :chefspec do
-    sh %(chef exec rspec test/unit/spec)
+    sh %(rspec test/unit/spec)
   end
 end
 
@@ -82,4 +72,12 @@ desc 'Generate the Readme.md file.'
 task :readme do
   drud = Drud::Readme.new(current_dir)
   drud.render
+end
+
+desc "Setup direnv by updating path to have chefdk first and remove any rvm directories from the PATH"
+task :direnv do
+  File.open(".envrc", 'w') do |f|
+    f.puts('eval "$(chef shell-init bash)"')
+    f.puts('export PATH=./bin:$(IFS=:; t=($PATH); unset IFS; t=(${t[@]%%*rvm*}); IFS=:; echo "${t[*]}";)')
+  end
 end

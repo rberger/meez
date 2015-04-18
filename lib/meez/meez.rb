@@ -39,7 +39,7 @@ class Meez
       append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}', '#{version}'")
     elsif github
       if branch
-        append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}', github: '#{github}', branch: #{branch}")
+        append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}', github: '#{github}', branch: '#{branch}'")
       else
         append_file(File.join(cookbook_path, 'Gemfile'), "gem '#{name}', github: '#{github}'")
       end
@@ -183,7 +183,7 @@ class Meez
     path = File.join(options[:path], cookbook_name)
     add_gem(path, 'yard')
     add_gem(path, 'yard-chef')
-    add_gem(path, 'drud', nil, 'rberger/drud', 'rjb-use')
+    add_gem(path, 'drud', nil, 'rberger/drud', 'rberger/use')
   end
 
   def self.bundle_install(cookbook_name, options)
