@@ -184,6 +184,7 @@ class Meez
     add_gem(path, 'yard')
     add_gem(path, 'yard-chef')
     add_gem(path, 'drud', nil, 'rberger/drud', 'rberger/use')
+    gitignore(path, '.envrc')
   end
 
   def self.bundle_install(cookbook_name, options)
